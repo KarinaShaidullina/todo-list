@@ -1,20 +1,38 @@
 import express from 'express';
+import { TaskModel } from './taskModel.js';
+
 const app = express();
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-    res.send('Hello, Express!');
-});
+// app.get('/', (req, res) => {
+//     res.send('Hello, Express!');
+// });
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 
 
+app.get('/tasks', async (req, res) => {
+    try {
+        const tasks = await TaskModel.find();
+        res.json(tasks);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
 
-
+app.post('/tasks', async (req, res) => {
+    try {
+        const newTask = new TaskModel(req.body);
+        const savedTask = await newTask.save();
+        res.status(201).json(savedTask);
+    } catch (err) {
+        res.status(400).send(err.message);
+    }
+});
 
 
 

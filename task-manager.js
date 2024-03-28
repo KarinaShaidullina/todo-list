@@ -1,5 +1,6 @@
 import fs from "fs";
-import { Task } from "./task.js";
+// import { Task } from "./task.js";
+import { TaskModel } from "./taskModel.js";
 import { EventEmitter } from "events";
 
 export class TaskManager extends EventEmitter {
@@ -9,14 +10,29 @@ export class TaskManager extends EventEmitter {
     }
 
     loadTasks() {
-        try {
-            const data = fs.readFileSync('tasks.json', 'utf8');
-            const tasksArray = JSON.parse(data);
-            this.tasks = tasksArray.map(task => new Task(task.id, task.description, task.status));
-        } catch (err) {
-            console.error('Ошибка', err);
-        }
+        fs.readFile('tasks.json', 'utf8', (err, data) => {
+            if (err){
+                console.error("Error reading file:", err);
+                return;
+            }
+            const tasksData = JSON.parse(data);
+            this.tasks = tasksData.map(task => {
+                const newTask = new TaskModel(task);
+                newTask.save();
+                return newTask;
+            }); 
+        });
     }
+
+    // loadTasks() {
+    //     try {
+    //         const data = fs.readFileSync('tasks.json', 'utf8');
+    //         const tasksArray = JSON.parse(data);
+    //         this.tasks = tasksArray.map(task => new Task(task.id, task.description, task.status));
+    //     } catch (err) {
+    //         console.error('Ошибка', err);
+    //     }
+    // }
     
     printTasks() {
         console.log('Tasks:');
@@ -24,6 +40,10 @@ export class TaskManager extends EventEmitter {
             console.log(`ID: ${task.id}, Description: ${task.description}, Status: ${task.status}`);
         });
     }
+
+    // printTasks() {
+    //     this.tasks.forEach((task) => console.log(task.toString()));
+    //   }
     
     addTask(id, description, status) {
         const task = { id, description, status};
